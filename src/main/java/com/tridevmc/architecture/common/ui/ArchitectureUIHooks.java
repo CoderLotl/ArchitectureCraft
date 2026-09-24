@@ -3,6 +3,7 @@ package com.tridevmc.architecture.common.ui;
 import com.tridevmc.architecture.common.ArchitectureMod;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -64,6 +65,8 @@ public class ArchitectureUIHooks {
                         lastProvider = Optional.of((IElementProvider) state.getBlock());
                         return (C) ((IElementProvider) state.getBlock()).createMenu(context);
                     }
+                    lastProvider = Optional.empty();
+                    return null;
                 case ENTITY:
                     int entityId = data.readVarInt();
                     var entity = world.getEntity(entityId);
@@ -108,7 +111,7 @@ public class ArchitectureUIHooks {
             public @NotNull Component getDisplayName() {
                 return provider.getDisplayName();
             }
-        });
+        }, buf -> writeTilePos(buf, blockEntity.getBlockPos()));
     }
 
     public static void openGui(ServerPlayer player, IElementProvider<? extends AbstractContainerMenu> provider, BlockPos pos) {
@@ -123,7 +126,7 @@ public class ArchitectureUIHooks {
             public @NotNull Component getDisplayName() {
                 return provider.getDisplayName();
             }
-        });
+        }, buf -> writeTilePos(buf, pos));
     }
 
     public static void openGui(ServerPlayer player, IElementProvider<? extends AbstractContainerMenu> provider, Entity entity) {
@@ -138,7 +141,19 @@ public class ArchitectureUIHooks {
             public @NotNull Component getDisplayName() {
                 return provider.getDisplayName();
             }
+        }, buf -> {
+            buf.writeByte(UIType.ENTITY.getId());
+            buf.writeVarInt(entity.getId());
         });
+    }
+
+    /**
+     * Writes the extra data expected by {@link #getFactory()} for the {@link UIType#TILE} case, so the client
+     * can look the position back up and re-resolve the same {@link IElementProvider} to build its menu.
+     */
+    private static void writeTilePos(RegistryFriendlyByteBuf buf, BlockPos pos) {
+        buf.writeByte(UIType.TILE.getId());
+        buf.writeBlockPos(pos);
     }
 
     private enum UIType {

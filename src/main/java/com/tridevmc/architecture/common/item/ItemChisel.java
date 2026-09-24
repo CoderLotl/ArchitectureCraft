@@ -24,13 +24,18 @@
 
 package com.tridevmc.architecture.common.item;
 
+import com.tridevmc.architecture.common.ArchitectureMod;
 import com.tridevmc.architecture.common.block.entity.BlockEntityShape;
+import com.tridevmc.architecture.common.shape.orientation.EnumConnectionState;
+import com.tridevmc.architecture.common.shape.orientation.ShapeOrientationPropertyConnection;
 import com.tridevmc.architecture.legacy.common.block.LegacyBlockHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -39,10 +44,19 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import javax.annotation.Nullable;
+
 public class ItemChisel extends Item {
 
+    /**
+     * Half-width of the "centre" zone of a clicked face, in block-local units (-0.5..0.5).
+     * Hits further from the centre than this, along an axis other than the clicked face's own axis,
+     * are treated as a click on that neighbouring side rather than the centre.
+     */
+    private static final double SIDE_ZONE_SIZE = 1 / 4D;
+
     public ItemChisel(ResourceLocation id) {
-        super(new Item.Properties().stacksTo(1).setId(ResourceKey.create(Registries.ITEM, id)));
+        super(new Item.Properties().stacksTo(1));
     }
 
     @Override
@@ -50,15 +64,20 @@ public class ItemChisel extends Item {
         var world = context.getLevel();
         var pos = context.getClickedPos();
         var player = context.getPlayer();
-        var side = context.getClickedFace();
-        var hitX = (float) context.getClickLocation().x();
-        var hitY = (float) context.getClickLocation().y();
-        var hitZ = (float) context.getClickLocation().z();
+        var clickedFace = context.getClickedFace();
+        var clickLoc = context.getClickLocation();
+        var hitX = clickLoc.x() - pos.getX() - 0.5;
+        var hitY = clickLoc.y() - pos.getY() - 0.5;
+        var hitZ = clickLoc.z() - pos.getZ() - 0.5;
         var te = world.getBlockEntity(pos);
-        if (te instanceof BlockEntityShape) {
+        if (te instanceof BlockEntityShape shapeEntity) {
             if (!world.isClientSide()) {
-                BlockEntityShape ste = (BlockEntityShape) te;
-                //ste.onChiselUse(player, side, hitX, hitY, hitZ);
+                var side = zoneHit(clickedFace, hitX, hitY, hitZ);
+                if (side != null) {
+                    this.toggleConnection(world, pos, side);
+                } else {
+                    this.removeSecondaryMaterial(world, pos, player, shapeEntity);
+                }
             }
             return InteractionResult.SUCCESS;
         }
@@ -74,6 +93,61 @@ public class ItemChisel extends Item {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.FAIL;
+    }
+
+    /**
+     * Determines which side (if any) of the block was hit, based on the clicked face and the hit position
+     * relative to the centre of the block. Hits inside the central zone return null.
+     *
+     * @param face the face that was clicked.
+     * @param hitX the x hit position, relative to the block centre (-0.5..0.5).
+     * @param hitY the y hit position, relative to the block centre (-0.5..0.5).
+     * @param hitZ the z hit position, relative to the block centre (-0.5..0.5).
+     * @return the side that was hit, or null if the centre was hit.
+     */
+    @Nullable
+    private static Direction zoneHit(Direction face, double hitX, double hitY, double hitZ) {
+        double r = 0.5 - SIDE_ZONE_SIZE;
+        if (hitX <= -r && face != Direction.WEST) return Direction.WEST;
+        if (hitX >= r && face != Direction.EAST) return Direction.EAST;
+        if (hitY <= -r && face != Direction.DOWN) return Direction.DOWN;
+        if (hitY >= r && face != Direction.UP) return Direction.UP;
+        if (hitZ <= -r && face != Direction.NORTH) return Direction.NORTH;
+        if (hitZ >= r && face != Direction.SOUTH) return Direction.SOUTH;
+        return null;
+    }
+
+    /**
+     * Toggles the connection state on the given side of the block, if it has one. Shapes that don't expose a
+     * connection property on that side (most of them) simply ignore the click.
+     */
+    private void toggleConnection(Level world, BlockPos pos, Direction side) {
+        var state = world.getBlockState(pos);
+        var property = ShapeOrientationPropertyConnection.forDirection(side);
+        if (!state.getProperties().contains(property)) {
+            return;
+        }
+        var connected = state.getValue(property) == EnumConnectionState.CONNECTED;
+        world.setBlock(pos, state.setValue(property, connected ? EnumConnectionState.DISCONNECTED : EnumConnectionState.CONNECTED), Block.UPDATE_CLIENTS);
+    }
+
+    /**
+     * Removes the secondary material from the given shape, if it has one, and gives the player back a
+     * cladding item for the material that was removed.
+     */
+    private void removeSecondaryMaterial(Level world, BlockPos pos, @Nullable Player player, BlockEntityShape shapeEntity) {
+        var material = shapeEntity.getSecondaryMaterialState().orElse(null);
+        if (material == null) {
+            return;
+        }
+        shapeEntity.clearSecondaryMaterialState();
+        shapeEntity.setChanged();
+        var state = world.getBlockState(pos);
+        world.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+        var returnedStack = ArchitectureMod.CONTENT.itemCladding.newStack(material, 1);
+        if (player == null || !player.getInventory().add(returnedStack)) {
+            Block.popResource(world, pos, returnedStack);
+        }
     }
 
     private void dropBlockAsItem(Level world, BlockPos pos, BlockState state) {

@@ -33,15 +33,15 @@ public class ShapePlacementLogicWindowFrame<T extends BlockArchitecture & INeigh
             };
         }
 
-        // Adding two more bits for the axis enum
-        var orientations = new ShapeOrientation[connectionPermutations.length * 2 * 2];
+        // Multiply by 3 to account for the 3 possible axis values (X, Y, Z).
+        var orientations = new ShapeOrientation[connectionPermutations.length * Direction.Axis.values().length];
         for (Direction.Axis axis : Direction.Axis.values()) {
             for (boolean[] connectionPermutation : connectionPermutations) {
                 var orientation = new ShapeOrientation(
                         ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.BOTTOM, connectionPermutation[0]),
                         ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.TOP, connectionPermutation[1]),
-                        ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.RIGHT, connectionPermutation[4]),
-                        ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.LEFT, connectionPermutation[5]),
+                        ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.RIGHT, connectionPermutation[2]),
+                        ShapeOrientationPropertyRelativeConnection.of(EnumRelativeDirection.LEFT, connectionPermutation[3]),
                         ShapeOrientationPropertyAxis.of(axis)
                 );
                 var lookupIndex = 0;

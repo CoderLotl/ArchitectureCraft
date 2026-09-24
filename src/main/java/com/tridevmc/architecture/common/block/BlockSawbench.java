@@ -43,7 +43,7 @@ public class BlockSawbench extends BlockArchitecture implements IElementProvider
     private final static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.Plane.HORIZONTAL);
 
     public BlockSawbench() {
-        super(Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(ArchitectureContent.REGISTRY_PREFIX, "sawbench"))));
+        super(Properties.of());
     }
 
     @Override

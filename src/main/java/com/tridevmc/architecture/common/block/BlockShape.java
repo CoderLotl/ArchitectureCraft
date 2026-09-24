@@ -9,6 +9,7 @@ import com.tridevmc.architecture.common.block.state.BlockStateShape;
 import com.tridevmc.architecture.common.shape.EnumShape;
 import com.tridevmc.architecture.common.shape.orientation.ShapeOrientation;
 import com.tridevmc.architecture.common.shape.placement.IShapePlacementLogic;
+import com.tridevmc.architecture.common.shape.rule.INeighbourConnectionRule;
 import com.tridevmc.architecture.core.ArchitectureLog;
 import com.tridevmc.architecture.core.math.ITrans3;
 import com.tridevmc.architecture.core.math.ITrans3Immutable;
@@ -19,11 +20,15 @@ import com.tridevmc.architecture.core.model.voxelize.IVoxelizer;
 import com.tridevmc.architecture.core.physics.AABB;
 import com.tridevmc.compound.core.reflect.WrappedField;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
@@ -50,7 +55,7 @@ import java.util.function.Function;
  *
  * @param <T> a self-referential generic type.
  */
-public class BlockShape<T extends BlockShape<T>> extends BlockArchitecture implements EntityBlock {
+public class BlockShape<T extends BlockShape<T>> extends BlockArchitecture implements EntityBlock, INeighbourConnectionRule {
 
     private static final WrappedField<StateDefinition<Block, BlockState>> STATE_DEFINITION = WrappedField.create(Block.class, "stateDefinition", "f_49792_");
 
@@ -63,12 +68,7 @@ public class BlockShape<T extends BlockShape<T>> extends BlockArchitecture imple
     private final EnumShape shape;
 
     public BlockShape(EnumShape shape) {
-        this(shape, BlockBehaviour.Properties.of().setId(
-                ResourceKey.create(Registries.BLOCK,
-                        ResourceLocation.fromNamespaceAndPath(ArchitectureContent.REGISTRY_PREFIX,
-                                "shape_" + shape.getName())
-                ))
-        );
+        this(shape, BlockBehaviour.Properties.of());
     }
 
     public BlockShape(EnumShape shape, Properties properties) {
@@ -105,6 +105,16 @@ public class BlockShape<T extends BlockShape<T>> extends BlockArchitecture imple
 
     public IShapePlacementLogic<T> getPlacementLogic() {
         return this.shape.getPlacementLogic();
+    }
+
+    /**
+     * Determines whether this shape connects to the given neighbouring block on the given side, used by
+     * window-like shapes to decide which of their frame faces should be hidden/merged with the neighbour.
+     * A shape only connects to another instance of the exact same shape.
+     */
+    @Override
+    public boolean connectsToOnSide(BlockState other, Direction side) {
+        return other.getBlock() instanceof BlockShape<?> otherShapeBlock && otherShapeBlock.getShape() == this.shape;
     }
 
     /**
@@ -222,6 +232,31 @@ public class BlockShape<T extends BlockShape<T>> extends BlockArchitecture imple
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         return ArchitectureDebugEventListeners.onVoxelizedBlockClicked(level, pos, player, hit, getShape().getVoxelizer());
+    }
+
+    /**
+     * Allows applying a secondary material to a placed shape by right-clicking it with a cladding item or any
+     * other placeable block item, mirroring the "texturing" workflow from earlier versions of the mod.
+     */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        var blockEntity = BlockEntityShape.getAt(level, pos);
+        if (blockEntity == null || blockEntity.getSecondaryMaterialState().isPresent()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        var materialState = BlockEntityShape.getSecondaryMaterialStateFromStack(stack);
+        if (materialState == null) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!level.isClientSide()) {
+            blockEntity.setSecondaryMaterialState(materialState);
+            blockEntity.setChanged();
+            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+            if (!player.isCreative()) {
+                stack.shrink(1);
+            }
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override

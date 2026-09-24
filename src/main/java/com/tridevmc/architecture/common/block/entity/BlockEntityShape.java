@@ -1,9 +1,11 @@
 package com.tridevmc.architecture.common.block.entity;
 
 import com.tridevmc.architecture.common.ArchitectureMod;
+import com.tridevmc.architecture.common.item.ItemCladding;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -129,5 +131,33 @@ public class BlockEntityShape extends BlockEntityArchitecture {
      */
     public BlockState getMaterialStateForIndex(int i) {
         return i == 0 ? this.getEffectiveBaseMaterialState() : this.getEffectiveSecondaryMaterialState();
+    }
+
+    /**
+     * Clears the secondary material state of this shape, reverting it to using the base material.
+     *
+     * @return This BlockEntityShape instance.
+     */
+    public BlockEntityShape clearSecondaryMaterialState() {
+        this.secondaryMaterialState = null;
+        return this;
+    }
+
+    /**
+     * Determines the material a stack would apply as a secondary material, without mutating anything.
+     * Only accepts {@link ItemCladding} stacks - it used to accept any placeable block item too, but that meant
+     * right-clicking an unclad shape with an ordinary block (to place it alongside, not to clad the shape) would
+     * silently consume the click as cladding instead of placing anything.
+     *
+     * @param stack The stack to inspect.
+     * @return The material state the stack would apply, or null if the stack cannot be used as a secondary material.
+     */
+    @Nullable
+    public static BlockState getSecondaryMaterialStateFromStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemCladding cladding)) {
+            return null;
+        }
+        var state = cladding.blockStateFromStack(stack);
+        return state.isAir() ? null : state;
     }
 }

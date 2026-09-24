@@ -38,7 +38,7 @@ public class DumbBlockReader implements BlockGetter {
     }
 
     @Override
-    public int getMinY() {
+    public int getMinBuildHeight() {
         return 0;
     }
 }

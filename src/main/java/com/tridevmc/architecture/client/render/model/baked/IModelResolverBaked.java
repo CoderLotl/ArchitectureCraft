@@ -55,4 +55,11 @@ public interface IModelResolverBaked<D> extends IArchitectureBakedModel {
     default List<BakedQuad> getQuads(@NotNull ItemStack stack) {
         return getModelResolver().getQuads(stack).allQuads();
     }
+
+    @Override
+    @NotNull
+    default List<BakedQuad> getQuadsForPreview(@NotNull BlockStateArchitecture state, @NotNull ItemStack stack) {
+        var resolver = this.getModelResolver();
+        return resolver.getQuads(stack, this.getMetadataResolver(), state.getTransform()).allQuads();
+    }
 }

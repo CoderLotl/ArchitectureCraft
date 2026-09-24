@@ -35,10 +35,15 @@ public class ModelResolverShapeGeneric implements IModelResolver<PolygonData> {
                 d -> getTextureForState(Blocks.OAK_PLANKS.defaultBlockState())
         ).blockTextureResolver(
                 (level, pos, state, metadata) -> {
-                    // Get the tile entity so we can pull in the material states.
+                    // Chunk rebuilds run on a background thread and can observe a position a moment after its
+                    // block entity was removed elsewhere (e.g. right after breaking a neighbouring shape) -
+                    // that's a normal, transient race, not a bug, so fall back instead of crashing the render
+                    // thread. The section gets rebuilt again shortly after with the correct (now-empty) state.
                     var shapeBe = BlockEntityShape.getAt(level, pos);
-                    Objects.requireNonNull(shapeBe, "Shape tile entity was null when resolving block texture.");
-                    return getTextureForState(shapeBe.getMaterialStateForIndex(metadata.textureIndex()));
+                    var materialState = shapeBe != null
+                            ? shapeBe.getMaterialStateForIndex(metadata.textureIndex())
+                            : Blocks.OAK_PLANKS.defaultBlockState();
+                    return getTextureForState(materialState);
                 }
         ).itemTextureResolver(
                 (stack, metadata) -> {
@@ -81,12 +86,12 @@ public class ModelResolverShapeGeneric implements IModelResolver<PolygonData> {
     @Override
     public IBakedQuadContainer getQuads(LevelAccessor level, BlockPos pos, BlockState state,
                                         IQuadMetadataResolver<PolygonData> resolver, ITrans3 transform) {
-        return mesh.getQuads(null, resolver, transform);
+        return mesh.getQuads(null, level, pos, state, resolver, transform);
     }
 
     @Override
     public IBakedQuadContainer getQuads(ItemStack stack, IQuadMetadataResolver<PolygonData> resolver, ITrans3 transform) {
-        return mesh.getQuads(null, resolver, transform);
+        return mesh.getQuads(null, stack, resolver, transform);
     }
 
     @Override

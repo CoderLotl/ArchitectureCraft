@@ -44,7 +44,7 @@ import java.util.List;
 public class ItemCladding extends ItemArchitecture {
 
     public ItemCladding(ResourceLocation id) {
-        super(new Item.Properties().component(ArchitectureMod.CONTENT.componentMaterial, ComponentMaterial.DEFAULT).setId(ResourceKey.create(Registries.ITEM, id)));
+        super(new Item.Properties().component(ArchitectureMod.CONTENT.componentMaterial, ComponentMaterial.DEFAULT));
     }
 
     public ItemStack newStack(BlockState state, int stackSize) {

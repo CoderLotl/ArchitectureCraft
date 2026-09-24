@@ -161,7 +161,18 @@ public class ArchitectureContent {
 
     private <T extends BlockEntity> BlockEntityType<T> registerBlockEntity(RegisterEvent.RegisterHelper<BlockEntityType<?>> registry, BlockEntityType.BlockEntitySupplier<T> tileSupplier, String id, Block... blocks) {
         ResourceLocation key = ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id);
-        BlockEntityType<T> tileType = new BlockEntityType<>(tileSupplier, blocks);
+        Type<?> dataFixerType = null;
+        try {
+            dataFixerType = DataFixers.getDataFixer().getSchema(
+                            DataFixUtils.makeKey(SharedConstants
+                                    .getCurrentVersion()
+                                    .getDataVersion()
+                                    .getVersion()))
+                    .getChoiceType(References.BLOCK_ENTITY, key.toString());
+        } catch (IllegalArgumentException e) {
+            ArchitectureLog.error("No data fixer was registered for resource id {}", key);
+        }
+        BlockEntityType<T> tileType = BlockEntityType.Builder.of(tileSupplier, blocks).build(dataFixerType);
         registry.register(ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id), tileType);
         return tileType;
     }
@@ -174,7 +185,7 @@ public class ArchitectureContent {
         registry.register(ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id), block);
         if (withItemBlock) {
             var itemBlockId = ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id);
-            itemBlocksToRegister.add(ImmutablePair.of(itemBlockId, new ItemBlockArchitecture(block, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, itemBlockId)))));
+            itemBlocksToRegister.add(ImmutablePair.of(itemBlockId, new ItemBlockArchitecture(block, new Item.Properties())));
         }
         registeredBlocks.put(id, block);
         return (T) registeredBlocks.get(id);
@@ -190,7 +201,7 @@ public class ArchitectureContent {
     }
 
     private <T extends Item> T registerItem(RegisterEvent.RegisterHelper<Item> registry, String id) {
-        ItemArchitecture item = new ItemArchitecture(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id))));
+        ItemArchitecture item = new ItemArchitecture(new Item.Properties());
         registry.register(ResourceLocation.fromNamespaceAndPath(REGISTRY_PREFIX, id), item);
         registeredItems.put(id, item);
 

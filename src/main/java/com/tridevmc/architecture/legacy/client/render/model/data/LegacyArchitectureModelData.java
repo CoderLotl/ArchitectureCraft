@@ -53,10 +53,10 @@ public class LegacyArchitectureModelData<T> {
     }
 
     private Direction rotate(Direction direction, Transformation transform) {
-        Vec3i dir = direction.getUnitVec3i();
+        Vec3i dir = direction.getNormal();
         Vector4f vec = new Vector4f(dir.getX(), dir.getY(), dir.getZ(), 0);
         transform.transformPosition(vec);
-        return Direction.getApproximateNearest(vec.x(), vec.y(), vec.z());
+        return Direction.getNearest(vec.x(), vec.y(), vec.z());
     }
 
     public void loadFromBakedModel(BakedModel sourceData) {

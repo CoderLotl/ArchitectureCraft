@@ -25,8 +25,10 @@
 package com.tridevmc.architecture.client.proxy;
 
 import com.tridevmc.architecture.client.debug.ArchitectureDebugEventListeners;
-import com.tridevmc.architecture.client.render.model.geometry.ArchitectureUnbakedModelLoader;
-import com.tridevmc.architecture.client.render.model.geometry.ArchitectureShapeUnbakedModelLoader;
+import com.tridevmc.architecture.client.render.ArchitectureBlockOutlineSuppressor;
+import com.tridevmc.architecture.client.render.PlacementPreviewRenderer;
+import com.tridevmc.architecture.client.render.model.geometry.ArchitectureGeometryLoader;
+import com.tridevmc.architecture.client.render.model.geometry.ArchitectureShapeGeometryLoader;
 import com.tridevmc.architecture.client.render.model.impl.BakedModelSawbench;
 import com.tridevmc.architecture.common.ArchitectureMod;
 import com.tridevmc.architecture.common.proxy.CommonProxy;
@@ -44,16 +46,23 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void setup(FMLCommonSetupEvent e) {
         super.setup(e);
+        NeoForge.EVENT_BUS.register(PlacementPreviewRenderer.class);
+        NeoForge.EVENT_BUS.register(ArchitectureBlockOutlineSuppressor.class);
         if (!FMLEnvironment.production)
             NeoForge.EVENT_BUS.register(ArchitectureDebugEventListeners.class);
     }
 
+    public void registerDefaultModelLocations() {
+    }
+
     @SubscribeEvent
-    public void onModelRegistryEvent(ModelEvent.RegisterLoaders e) {
-        e.register(ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, "sawbench_loader"), new ArchitectureUnbakedModelLoader(
-                (textures, baker, modelState, useAmbientOcclusion, usesBlockLight, itemTransforms, additionalProperties) -> new BakedModelSawbench(itemTransforms)
-        ));
-        e.register(ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, "shape_loader"), new ArchitectureShapeUnbakedModelLoader());
+    public void onModelRegistryEvent(ModelEvent.RegisterGeometryLoaders e) {
+        e.register(ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, "sawbench_loader"), new ArchitectureGeometryLoader(
+                        () -> (context, modelBaker, function, modelState, itemOverrides) -> new BakedModelSawbench(context.getTransforms())
+                )
+        );
+        e.register(ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, "shape_loader"), new ArchitectureShapeGeometryLoader());
+        this.registerDefaultModelLocations();
     }
 
     @SubscribeEvent

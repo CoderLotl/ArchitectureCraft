@@ -57,12 +57,7 @@ public class ItemShape extends ItemBlockArchitecture {
     private final EnumShape shape;
 
     public ItemShape(BlockShape block) {
-        super(block, new Item.Properties().component(ArchitectureMod.CONTENT.componentMaterial, ComponentMaterial.DEFAULT).setId(
-                ResourceKey.create(Registries.ITEM,
-                        ResourceLocation.fromNamespaceAndPath(ArchitectureContent.REGISTRY_PREFIX,
-                                "shape_" + block.getShape().getName())
-                )
-        ));
+        super(block, new Item.Properties().component(ArchitectureMod.CONTENT.componentMaterial, ComponentMaterial.DEFAULT));
         this.shape = block.getShape();
         SHAPE_ITEMS.put(block.getShape(), this);
     }
@@ -104,9 +99,16 @@ public class ItemShape extends ItemBlockArchitecture {
     protected boolean placeBlock(BlockPlaceContext context, BlockState newState) {
         var result = super.placeBlock(context, newState);
         if (result && !context.getLevel().isClientSide()) {
-            BlockEntityShape.getAtOptionally(context.getLevel(), context.getClickedPos()).ifPresentOrElse(shape -> {
+            var level = context.getLevel();
+            var pos = context.getClickedPos();
+            BlockEntityShape.getAtOptionally(level, pos).ifPresentOrElse(shape -> {
                 shape.setBaseMaterialState(getStateFromStack(context.getItemInHand()));
-            }, () -> ArchitectureLog.error("Failed to place shape block entity at position: " + context.getClickedPos()));
+                shape.setChanged();
+                // Without this, the client never learns about the material we just set - placement already
+                // sent the initial sync packet before setBaseMaterialState() ran, so the client renders with
+                // whatever default the block entity started with until the next unrelated block update.
+                level.sendBlockUpdated(pos, newState, newState, Block.UPDATE_CLIENTS);
+            }, () -> ArchitectureLog.error("Failed to place shape block entity at position: " + pos));
         }
         return result;
     }

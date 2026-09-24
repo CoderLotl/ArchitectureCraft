@@ -22,9 +22,12 @@ public enum EnumShape {
     ROOF_OUTER_CORNER("roof_outer_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ROOF_INNER_CORNER("roof_inner_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ROOF_RIDGE("roof_ridge", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
-    ROOF_SMART_RIDGE("roof_smart_ridge", null, null),
+    // The "smart" ridge/valley shapes place exactly like their plain counterparts - it's their rendering
+    // (BakedModelRoofGeneric) that auto-connects to neighbours on all four sides instead of just the one this
+    // orientation faces.
+    ROOF_SMART_RIDGE("roof_smart_ridge", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ROOF_VALLEY("roof_valley", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
-    ROOF_SMART_VALLEY("roof_smart_valley", null, null),
+    ROOF_SMART_VALLEY("roof_smart_valley", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
     ROOF_OVERHANG("roof_overhang", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ROOF_OVERHANG_OUTER_CORNER("roof_overhang_outer_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
@@ -35,7 +38,7 @@ public enum EnumShape {
     CYLINDER_QUARTER("cylinder_quarter", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     CYLINDER_LARGE_QUARTER("cylinder_large_quarter", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ANTICYLINDER_LARGE_QUARTER("anticylinder_large_quarter", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
-    PILLAR("pillar", ShapePlacementLogicOnAxis.INSTANCE, ShapeTransformationResolverOnAxis.INSTANCE),
+    PILLAR("pillar", ShapePlacementLogicOnAxisWithSpin.INSTANCE, ShapeTransformationResolverAxisWithSpin.INSTANCE),
     POST("post", ShapePlacementLogicOnAxis.INSTANCE, ShapeTransformationResolverOnAxis.INSTANCE),
     POLE("pole", ShapePlacementLogicOnAxis.INSTANCE, ShapeTransformationResolverOnAxis.INSTANCE),
 
@@ -52,11 +55,11 @@ public enum EnumShape {
     ARCHITRAVE("architrave", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ARCHITRAVE_CORNER("architrave_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    WINDOW_FRAME("window_frame", null, null),
-    WINDOW_CORNER("window_corner", null, null),
-    WINDOW_MULLION("window_mullion", null, null),
-    WINDOW_SMART("window_smart", new ShapePlacementLogicWindow<>(), (s) -> ITrans3.ofIdentity()), // TODO: Use window class for placement logic instead of empty diamond
-    WINDOW_MULLION_SMART("window_mullion_smart", new ShapePlacementLogicWindow<>(), (s) -> ITrans3.ofIdentity()), // TODO: Use window class for placement logic instead of empty diamond
+    WINDOW_FRAME("window_frame", new ShapePlacementLogicWindowFrame<>(), ShapeTransformationResolverOnAxis.INSTANCE),
+    WINDOW_CORNER("window_corner", new ShapePlacementLogicWindowCorner<>(), ShapeTransformationResolverAxisWithSpin.INSTANCE),
+    WINDOW_MULLION("window_mullion", new ShapePlacementLogicWindowFrame<>(), ShapeTransformationResolverOnAxis.INSTANCE),
+    WINDOW_SMART("window_smart", new ShapePlacementLogicWindow<>(), ShapeTransformationResolverOnAxis.INSTANCE),
+    WINDOW_MULLION_SMART("window_mullion_smart", new ShapePlacementLogicWindow<>(), ShapeTransformationResolverOnAxis.INSTANCE),
 
     SPHERE_FULL("sphere_full", ShapePlacementLogicStatic.INSTANCE, (s) -> ITrans3.ofIdentity()), // IMPLEMENTED
     SPHERE_HALF("sphere_half", ShapePlacementLogicFacingWithFlip.INSTANCE, ShapeTransformationResolverFacingWithFlip.INSTANCE),
@@ -65,22 +68,22 @@ public enum EnumShape {
     SPHERE_EIGHTH_LARGE("sphere_eighth_large", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     SPHERE_EIGHTH_LARGE_REV("sphere_eighth_large_rev", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    ROOF_OVERHANG_GABLE_LH("roof_overhang_gable_lh", null, null),
-    ROOF_OVERHANG_GABLE_RH("roof_overhang_gable_rh", null, null),
-    ROOF_OVERHANG_GABLE_END_LH("roof_overhang_gable_end_lh", null, null),
-    ROOF_OVERHANG_GABLE_END_RH("roof_overhang_gable_end_rh", null, null),
-    ROOF_OVERHANG_RIDGE("roof_overhang_ridge", null, null),
-    ROOF_OVERHANG_VALLEY("roof_overhang_valley", null, null),
+    ROOF_OVERHANG_GABLE_LH("roof_overhang_gable_lh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    ROOF_OVERHANG_GABLE_RH("roof_overhang_gable_rh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    ROOF_OVERHANG_GABLE_END_LH("roof_overhang_gable_end_lh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    ROOF_OVERHANG_GABLE_END_RH("roof_overhang_gable_end_rh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    ROOF_OVERHANG_RIDGE("roof_overhang_ridge", "roof_overhang_gable_ridge", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    ROOF_OVERHANG_VALLEY("roof_overhang_valley", "roof_overhang_gable_valley", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    CORNICE_LH("cornice_lh", null, null),
-    CORNICE_RH("cornice_rh", null, null),
-    CORNICE_END_LH("cornice_end_lh", null, null),
-    CORNICE_END_RH("cornice_end_rh", null, null),
-    CORNICE_RIDGE("cornice_ridge", null, null),
-    CORNICE_VALLEY("cornice_valley", null, null),
-    CORNICE_BOTTOM("cornice_bottom", null, null),
+    CORNICE_LH("cornice_lh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_RH("cornice_rh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_END_LH("cornice_end_lh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_END_RH("cornice_end_rh", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_RIDGE("cornice_ridge", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_VALLEY("cornice_valley", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    CORNICE_BOTTOM("cornice_bottom", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    CLADDING_SHEET("cladding_sheet", null, null),
+    CLADDING_SHEET("cladding_sheet", null, null), // TODO: Needs a dedicated "attach to face of neighbour" placement, unlike every other freestanding shape.
 
     ARCH_D1("arch_d1", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ARCH_D2("arch_d2", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
@@ -91,38 +94,41 @@ public enum EnumShape {
     ARCH_D4B("arch_d4b", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     ARCH_D4C("arch_d4c", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BANISTER_PLAIN_BOTTOM("banister_plain_bottom", null, null),
-    BANISTER_PLAIN("banister_plain", null, null),
-    BANISTER_PLAIN_TOP("banister_plain_top", null, null),
+    // NOTE: These banister/balustrade shapes are wired with the same generic stair-like placement used by
+    // the archway/architrave shapes above. Upstream (1.12) placed the "banister" family with an extra
+    // top/bottom offset (like a slab), which this generic placement does not replicate yet.
+    BANISTER_PLAIN_BOTTOM("banister_plain_bottom", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BANISTER_PLAIN("banister_plain", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BANISTER_PLAIN_TOP("banister_plain_top", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BALUSTRADE_FANCY("balustrade_fancy", null, null),
-    BALUSTRADE_FANCY_CORNER("balustrade_fancy_corner", null, null),
-    BALUSTRADE_FANCY_WITH_NEWEL("balustrade_fancy_with_newel", null, null),
-    BALUSTRADE_FANCY_NEWEL("balustrade_fancy_newel", null, null),
+    BALUSTRADE_FANCY("balustrade_fancy", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_FANCY_CORNER("balustrade_fancy_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_FANCY_WITH_NEWEL("balustrade_fancy_with_newel", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_FANCY_NEWEL("balustrade_fancy_newel", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BALUSTRADE_PLAIN("balustrade_plain", null, null),
-    BALUSTRADE_PLAIN_OUTER_CORNER("balustrade_plain_outer_corner", null, null),
-    BALUSTRADE_PLAIN_WITH_NEWEL("balustrade_plain_with_newel", null, null),
+    BALUSTRADE_PLAIN("balustrade_plain", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_PLAIN_OUTER_CORNER("balustrade_plain_outer_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_PLAIN_WITH_NEWEL("balustrade_plain_with_newel", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BANISTER_PLAIN_END("banister_plain_end", null, null),
+    BANISTER_PLAIN_END("banister_plain_end", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BANISTER_FANCY_NEWEL_TALL("banister_fancy_newel_tall", null, null),
+    BANISTER_FANCY_NEWEL_TALL("banister_fancy_newel_tall", "balustrade_fancy_newel_tall", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BALUSTRADE_PLAIN_INNER_CORNER("balustrade_plain_inner_corner", null, null),
-    BALUSTRADE_PLAIN_END("balustrade_plain_end", null, null),
+    BALUSTRADE_PLAIN_INNER_CORNER("balustrade_plain_inner_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BALUSTRADE_PLAIN_END("balustrade_plain_end", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BANISTER_FANCY_BOTTOM("banister_fancy_bottom", null, null),
-    BANISTER_FANCY("banister_fancy", null, null),
-    BANISTER_FANCY_TOP("banister_fancy_top", null, null),
-    BANISTER_FANCY_END("banister_fancy_end", null, null),
+    BANISTER_FANCY_BOTTOM("banister_fancy_bottom", "balustrade_stair_fancy_bottom", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BANISTER_FANCY("banister_fancy", "balustrade_stair_fancy", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BANISTER_FANCY_TOP("banister_fancy_top", "balustrade_stair_fancy_top", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
+    BANISTER_FANCY_END("banister_fancy_end", "balustrade_stair_fancy_end", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
-    BANISTER_PLAIN_INNER_CORNER("banister_plain_inner_corner", null, null),
+    BANISTER_PLAIN_INNER_CORNER("banister_plain_inner_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
 
     SLAB("slab", ShapePlacementLogicSlab.INSTANCE, ShapeTransformationResolverSlab.INSTANCE),
     STAIRS("stairs", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     STAIRS_OUTER_CORNER("stairs_outer_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
     STAIRS_INNER_CORNER("stairs_inner_corner", ShapePlacementLogicStairLike.INSTANCE, ShapeTransformationResolverPointedWithSpin.INSTANCE),
-    STAIRS_SMART("stairs_smart", null, null);
+    STAIRS_SMART("stairs_smart", null, null); // TODO: Needs neighbour-detection logic to auto-select stair orientation/corners.
 
 
     private static final Map<String, EnumShape> NAME_LOOKUP = Arrays.stream(values())
@@ -130,6 +136,7 @@ public enum EnumShape {
     private static final Map<ResourceLocation, EnumShape> ID_LOOKUP = Arrays.stream(values())
             .collect(Collectors.toMap(EnumShape::getId, Function.identity()));
     private final String name;
+    private final String meshName;
     private final String localizationKey;
     private final ResourceLocation id;
     private final IShapePlacementLogic<?> placementLogic;
@@ -137,7 +144,19 @@ public enum EnumShape {
 
     EnumShape(String name, IShapePlacementLogic<?> placementLogic,
               IShapeTransformationResolver transformationResolver) {
+        this(name, name, placementLogic, transformationResolver);
+    }
+
+    /**
+     * @param name                    the name of the shape, used for its id/localization/registration.
+     * @param meshName                the name of the .objson mesh asset backing this shape, when it differs from
+     *                                 {@code name} (some meshes are shared between shapes that were renamed at
+     *                                 some point, or kept their original upstream model name).
+     */
+    EnumShape(String name, String meshName, IShapePlacementLogic<?> placementLogic,
+              IShapeTransformationResolver transformationResolver) {
         this.name = name;
+        this.meshName = meshName;
         this.localizationKey = String.format("shape.%s.%s", ArchitectureMod.MOD_ID, name);
         this.id =ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, String.format("shape/%s", name));
         this.placementLogic = placementLogic;
@@ -177,7 +196,7 @@ public enum EnumShape {
     }
 
     public ResourceLocation getAssetLocation() {
-        return ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, String.format("shape/%s.objson", this.name));
+        return ResourceLocation.fromNamespaceAndPath(ArchitectureMod.MOD_ID, String.format("shape/%s.objson", this.meshName));
     }
 
     public String getLocalizationKey() {

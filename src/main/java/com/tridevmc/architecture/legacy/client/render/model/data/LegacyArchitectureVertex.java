@@ -54,10 +54,10 @@ public class LegacyArchitectureVertex {
     }
 
     protected Direction rotate(Direction direction, Transformation transform) {
-        Vec3i dir = direction == null ? new Vec3i(0, 0, 0) : direction.getUnitVec3i();
+        Vec3i dir = direction == null ? new Vec3i(0, 0, 0) : direction.getNormal();
         Vector4f vec = new Vector4f(dir.getX(), dir.getY(), dir.getZ(), 0);
         transform.transformPosition(vec);
-        return Direction.getApproximateNearest(vec.x(), vec.y(), vec.z());
+        return Direction.getNearest(vec.x(), vec.y(), vec.z());
     }
 
     public float[] getUVs(IPipedBakedQuad quadProvider, Transformation transform) {
