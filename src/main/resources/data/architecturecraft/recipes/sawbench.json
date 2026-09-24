@@ -7,13 +7,13 @@
     ],
     "key": {
         "I": {
-            "tag": "forge:ingots/iron"
+            "tag": "c:ingots/iron"
         },
         "*": {
             "item": "architecturecraft:sawblade"
         },
         "/": {
-            "tag": "forge:rods/wooden"
+            "tag": "c:rods/wooden"
         },
         "_": {
             "tag": "minecraft:wooden_pressure_plates"
