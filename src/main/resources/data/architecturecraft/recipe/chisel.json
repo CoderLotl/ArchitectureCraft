@@ -1,0 +1,21 @@
+{
+    "type": "crafting_shaped",
+    "pattern": [
+        "I ",
+        "d/"
+    ],
+    "key": {
+        "I": {
+            "tag": "c:ingots/iron"
+        },
+        "/": {
+            "tag": "c:rods/wooden"
+        },
+        "d": {
+            "tag": "c:dyes/orange"
+        }
+    },
+    "result": {
+        "id": "architecturecraft:chisel"
+    }
+}

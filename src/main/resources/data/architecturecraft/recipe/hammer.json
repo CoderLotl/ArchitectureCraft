@@ -1,8 +1,9 @@
 {
     "type": "crafting_shaped",
     "pattern": [
-        "I ",
-        "d/"
+        "II ",
+        "d/I",
+        "d/ "
     ],
     "key": {
         "I": {
@@ -16,6 +17,6 @@
         }
     },
     "result": {
-        "item": "architecturecraft:chisel"
+        "id": "architecturecraft:hammer"
     }
 }

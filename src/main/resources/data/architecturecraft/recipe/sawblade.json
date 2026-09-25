@@ -1,9 +1,9 @@
 {
     "type": "crafting_shaped",
     "pattern": [
-        "II ",
-        "d/I",
-        "d/ "
+        " I ",
+        "I/I",
+        " I "
     ],
     "key": {
         "I": {
@@ -11,12 +11,9 @@
         },
         "/": {
             "tag": "c:rods/wooden"
-        },
-        "d": {
-            "tag": "c:dyes/orange"
         }
     },
     "result": {
-        "item": "architecturecraft:hammer"
+        "id": "architecturecraft:sawblade"
     }
 }

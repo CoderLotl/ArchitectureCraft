@@ -1,19 +1,19 @@
 {
     "type": "crafting_shaped",
     "pattern": [
-        " I ",
-        "I/I",
-        " I "
+        " W ",
+        "W/W",
+        " W "
     ],
     "key": {
-        "I": {
-            "tag": "c:ingots/iron"
+        "W": {
+            "tag": "minecraft:planks"
         },
         "/": {
             "tag": "c:rods/wooden"
         }
     },
     "result": {
-        "item": "architecturecraft:sawblade"
+        "id": "architecturecraft:large_pulley"
     }
 }
